@@ -1,0 +1,90 @@
+openapi: 3.0.1
+info:
+  description: REST API for Simswap app
+  title: Sim-swap API
+  version: '1.0'
+paths:
+  /retrieve_date/{phone_number}:
+    get:
+      tags:
+        - Retrieve SIM swap date
+      summary: Get timestamp of last MSISDN <-> IMSI pairing change for a mobile
+      description: Get timestamp of last MSISDN <-> IMSI pairing change for a mobile user account provided with MSIDN.
+      operationId: getSimswapChange
+      parameters:
+        - name: phone_number
+          in: path
+          description: string (PhoneNumber) Subscriber number in E.164 format (starting with country code). Prefixed with '+'.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Timestamp of latest SIM swap performed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message with the timestamp of last MSISDN <-> IMSI pairing change 
+                    example: "Last SIM Swap was in 2019-08-24T14:15:22Z"
+        '401':
+          description: Authentication problem
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Error message
+                    example: "Something was wrong: 401 ==> Phone not in whitelist"
+        '500':
+          description: Server Error
+  /check/{phone_number}/{max_age}:
+    get:
+      tags:
+        - Check SIM swap date
+      summary: Check if SIM swap has been performed during a past period
+      description: Check if SIM swap has been performed during a past period
+      operationId: checkSimswapChangeInPeriod
+      parameters:
+        - name: phone_number
+          in: path
+          description: string (PhoneNumber) Subscriber number in E.164 format (starting with country code). Prefixed with '+'.
+          required: true
+          schema:
+            type: string
+        - name: max_age
+          in: path
+          description: Period in hours to be checked for SIM swap (default 240).
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Timestamp of latest SIM swap performed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message with the timestamp of last MSISDN <-> IMSI pairing change 
+                    example: "Its False that there has been a sim swap in the last 10 days."
+        '401':
+          description: Authentication problem
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Error message
+                    example: "Something was wrong: 401 ==> Phone not in whitelist"
+        '500':
+          description: Server Error
