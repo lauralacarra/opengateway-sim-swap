@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import base64
 from flask import Flask, jsonify
 from flask_cors import CORS
 import requests
@@ -15,9 +16,9 @@ app = Flask(__name__)
 CORS(app)
 
 # Get client credentials as provided on your app’s registration from environment variables
-app_api_key = os.getenv("APP_API_KEY")
+app_client_id = os.getenv("APP_CLIENT_ID")
+app_client_secret = os.getenv("APP_CLIENT_SECRET")
 api_gateway_url = os.getenv("API_GATEWAY_URL")
-
 # SimSwap URLs
 simswap_base_url = f'{api_gateway_url}/sim-swap/v0/'
 RETRIEVE_DATE_URL = f'{simswap_base_url}retrieve-date'
@@ -32,7 +33,7 @@ def retrieve_date(phone_number = None):
             'Content-Type': 'application/json'
         }
         payload = { 'phoneNumber': phone_number }
-        
+
         # Retrieve last SIM Swap date
         response = requests.post(RETRIEVE_DATE_URL, json=payload, headers=headers, timeout=5)
     except ValueError as e:
@@ -47,14 +48,14 @@ def check(phone_number, max_age = 240):
         'Authorization': auth_token,
         'Content-Type': 'application/json'
     }
-    payload = { 
+    payload = {
         'phoneNumber': phone_number,
         'max_age': max_age
         }
-        
+
     # Retrieve last SIM Swap date
     response = requests.post(CHECK_URL, json=payload, headers=headers, timeout=5)
-    data = response.json() 
+    data = response.json()
     return jsonify(message=f'It is {data.get('swapped', 'Unknow')} that there has been a sim swap in the last {max_age} hours.')
 
 # CIBA settings
@@ -62,8 +63,10 @@ PURPOSE = os.getenv("PURPOSE")
 GRANT_TYPE = os.getenv("GRANT_TYPE")
 
 def getAccessToken(phone_number):
+    authorization = app_client_id + ':' + app_client_secret
+    encoded_authorization = base64.b64encode(authorization.encode()).decode()
     headers = {
-        'Authorization': f'Basic {app_api_key}',
+        'Authorization': "Basic %s" % encoded_authorization,
         'Content-Type': 'application/x-www-form-urlencoded'
     }
     request_body = {
@@ -72,7 +75,7 @@ def getAccessToken(phone_number):
     }
     response = requests.post(
             f'{api_gateway_url}/bc-authorize',
-            data= request_body,
+            data=request_body,
             headers=headers,
             timeout=5
         )

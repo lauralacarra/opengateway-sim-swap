@@ -3,12 +3,15 @@ import sys
 from opengateway_sandbox_sdk import Simswap
 
 def main() -> None:
-    API_KEY = os.getenv('APP_API_KEY')
+    CLIENT_ID = os.getenv('CLIENT_ID')
+    CLIENT_SECRET = os.getenv('CLIENT_SECRET')
     phone_number = sys.argv[1]
-    if API_KEY is None:
-        raise ValueError("API_KEY environment variable is not set")
-    
-    simswap_client = Simswap(API_KEY, phone_number)
+    if CLIENT_ID is None:
+        raise ValueError("CLIENT_ID environment variable is not set")
+    if CLIENT_SECRET is None:
+        raise ValueError("CLIENT_SECRET environment variable is not set")
+
+    simswap_client = Simswap(CLIENT_ID, CLIENT_SECRET, phone_number)
     print(f'CIBA auth success')
 
     if simswap_client.check(max_age=2400):
